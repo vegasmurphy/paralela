@@ -24,7 +24,7 @@ double	a[NRA][NCA],           /* matrix A to be multiplied */
 
 chunk = 10;                    /* set loop iteration chunk size */
 
-printf("%i\n", argc);
+//set number of threads
 if (argc>1) {
   nthreads = atoi(argv[1]);
 }
