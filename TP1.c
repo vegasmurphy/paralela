@@ -13,8 +13,7 @@ int main (int argc, char *argv[])
 {
     int tid,                /* a task identifier */
         i, ii, j, jj, k, kk, r,s,ths, rc,n,h,
-        M,K,BLOCK_SIZE;           /* misc */
-    
+        M,K,BLOCK_SIZE=500;           /* misc */
         
 
     int alg;
@@ -32,13 +31,11 @@ int main (int argc, char *argv[])
        ths=atoi(argv[2]);
        K=atoi(argv[3]);
        M=atoi(argv[4]);
-       BLOCK_SIZE=atoi(argv[5]);
     } else {
        alg=1;
        ths=1;
        K=1;
        M=1;
-       BLOCK_SIZE=500;
     }
 
     for(i=0;i<ROWS;i++){
@@ -87,10 +84,10 @@ int main (int argc, char *argv[])
     case 3:
         tini=omp_get_wtime();
         tid = omp_get_thread_num();
-#pragma omp parallel for private (i,j,k)
-        for(i=0;i<ROWS;i=i+BLOCK_SIZE){
-            for(k=0;k<ROWS;k=k+BLOCK_SIZE){
-                for(j=0;j<COLS;j=j+BLOCK_SIZE){
+#pragma omp parallel for private (i,j,k,ii,jj,kk)
+        for(i=0;i<ROWS-BLOCK_SIZE;i=i+BLOCK_SIZE){
+            for(k=0;k<ROWS-BLOCK_SIZE;k=k+BLOCK_SIZE){
+                for(j=0;j<COLS-BLOCK_SIZE;j=j+BLOCK_SIZE){
                     for(ii=0;ii<BLOCK_SIZE;ii++){
                         for(ii=0;ii<BLOCK_SIZE;ii++){
                             for(kk=0;kk<BLOCK_SIZE;kk++){
