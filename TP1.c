@@ -26,11 +26,12 @@ int main (int argc, char *argv[])
 
 
 //data initialization
-    if (argc>3){
+    if (argc>4){
        alg=atoi(argv[1]);
        ths=atoi(argv[2]);
        K=atoi(argv[3]);
        M=atoi(argv[4]);
+       BLOCK_SIZE=atoi(argv[5]);
     } else {
        alg=1;
        ths=1;
@@ -91,6 +92,26 @@ int main (int argc, char *argv[])
                     for(ii=0;ii<BLOCK_SIZE;ii++){
                         for(jj=0;jj<BLOCK_SIZE;jj++){
                             for(kk=0;kk<BLOCK_SIZE;kk++){
+                                c[i+ii][j+jj]=c[i+ii][j+jj]+a[i+ii][k+kk]*b[k+kk][j+jj];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        tfin=omp_get_wtime();
+        printf("\nEl computo demoro  %f segs\n",tfin-tini);
+    break;
+        case 4:
+        tini=omp_get_wtime();
+        tid = omp_get_thread_num();
+#pragma omp parallel for private (i,j,k,ii,jj,kk)
+        for(i=0;i<=ROWS-BLOCK_SIZE;i=i+BLOCK_SIZE){
+            for(k=0;k<=ROWS-BLOCK_SIZE;k=k+BLOCK_SIZE){
+                for(j=0;j<=COLS-BLOCK_SIZE;j=j+BLOCK_SIZE){
+                    for(ii=0;ii<BLOCK_SIZE;ii++){
+                    	for(kk=0;kk<BLOCK_SIZE;kk++){
+                        	for(jj=0;jj<BLOCK_SIZE;jj++){
                                 c[i+ii][j+jj]=c[i+ii][j+jj]+a[i+ii][k+kk]*b[k+kk][j+jj];
                             }
                         }
