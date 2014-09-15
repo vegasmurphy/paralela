@@ -53,6 +53,9 @@ int main (int argc, char *argv[])
     }
 
     omp_set_num_threads(ths);
+   
+   
+   
     switch (alg){
     case 1:
         tini=omp_get_wtime();
@@ -82,7 +85,38 @@ int main (int argc, char *argv[])
         tfin=omp_get_wtime();
         printf("\nEl computo demoro  %f segs\n",tfin-tini);
     break;
-    case 3:
+
+    
+	case 3:
+        tini=omp_get_wtime();
+        //tid = omp_get_thread_num();
+#pragma omp parallel for private (i,j,k)
+         for(j=0;j<COLS;j++){
+			for(i=0;i<ROWS;i++){
+                for(k=0;k<ROWS;k++){
+                    c[i][j]=c[i][j]+a[i][k]*b[k][j];
+                }
+            }
+        }
+        tfin=omp_get_wtime();
+        printf("\nEl computo demoro  %f segs\n",tfin-tini);
+    break;
+    case 4:
+        tini=omp_get_wtime();
+        tid = omp_get_thread_num();
+#pragma omp parallel for private (i,j,k)
+        for(j=0;j<COLS;j++){
+                for(k=0;k<ROWS;k++){
+					for(i=0;i<ROWS;i++){
+								c[i][j]=c[i][j]+a[i][k]*b[k][j];
+							}
+				}
+        }
+        tfin=omp_get_wtime();
+        printf("\nEl computo demoro  %f segs\n",tfin-tini);
+    break;    
+
+    case 5:
         tini=omp_get_wtime();
         tid = omp_get_thread_num();
 #pragma omp parallel for private (i,j,k,ii,jj,kk)
@@ -102,7 +136,7 @@ int main (int argc, char *argv[])
         tfin=omp_get_wtime();
         printf("\nEl computo demoro  %f segs\n",tfin-tini);
     break;
-        case 4:
+        case 6:
         tini=omp_get_wtime();
         tid = omp_get_thread_num();
 #pragma omp parallel for private (i,j,k,ii,jj,kk)
@@ -122,8 +156,34 @@ int main (int argc, char *argv[])
         tfin=omp_get_wtime();
         printf("\nEl computo demoro  %f segs\n",tfin-tini);
     break;
+    
+// El case 7 es para probar el orden de ejecucion kk, ii, jj que no se pudo probar en los algoritmos simples por
+// problemas de concurrencia. En este caso, ya no habria problemas porque cada hilo trabaja en una mitad diferente
+// de la matriz C.    
+        case 7:
+        tini=omp_get_wtime();
+        tid = omp_get_thread_num();
+#pragma omp parallel for private (i,j,k,ii,jj,kk)
+		for(i=0;i<=ROWS-BLOCK_SIZE;i=i+BLOCK_SIZE){
+            for(j=0;j<=COLS-BLOCK_SIZE;j=j+BLOCK_SIZE){
+					for(k=0;k<=ROWS-BLOCK_SIZE;k=k+BLOCK_SIZE){
+						for(kk=0;kk<BLOCK_SIZE;kk++){	
+							for(ii=0;ii<BLOCK_SIZE;ii++){
+								for(jj=0;jj<BLOCK_SIZE;jj++){
+										c[i+ii][j+jj]=c[i+ii][j+jj]+a[i+ii][k+kk]*b[k+kk][j+jj];
+									}
+                        }
+                    }
+                }
+            }
+        }
+        tfin=omp_get_wtime();
+        printf("\nEl computo demoro  %f segs\n",tfin-tini);
+    break;
     break;
     }
+    
+    
 //chequeo de resultado
     for(i=0;i<COLS;i++){
         for(j=0;j<ROWS;j++){
@@ -132,6 +192,4 @@ int main (int argc, char *argv[])
             }
         }
     }
-
-
-    }
+}
