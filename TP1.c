@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#define ROWS 2000
+#define ROWS 10000
 #define COLS ROWS
 
 int main (int argc, char *argv[])
@@ -18,9 +18,25 @@ int main (int argc, char *argv[])
 
     int alg;
 
-    double a[COLS][ROWS],           /* matrix A to be multiplied */
-           b[ROWS][COLS],           /* matrix B to be multiplied */
-           c[COLS][ROWS];           /* result matrix C */
+    double **a,           /* matrix A to be multiplied */
+			**b,           /* matrix B to be multiplied */
+			**c;           /* result matrix C */
+           
+    	
+	a = (double **) malloc (COLS*sizeof(double));
+	c = (double **) malloc (COLS*sizeof(double));
+	b = (double **) malloc (ROWS*sizeof(double));
+	
+	for(i=0;i<COLS;i++)
+	{
+		a[i] = (double *) malloc (ROWS*sizeof(double));
+		c[i] = (double *) malloc (ROWS*sizeof(double));      
+    }       
+
+	for(i=0;i<ROWS;i++)
+	{
+		b[i] = (double *) malloc (COLS*sizeof(double));
+    }       
 
     double tini,tfin;
 
@@ -200,6 +216,72 @@ int main (int argc, char *argv[])
         tfin=omp_get_wtime();
         printf("\nEl computo demoro  %f segs\n",tfin-tini);
     break;
+    
+        case 8:
+        tini=omp_get_wtime();
+        tid = omp_get_thread_num();
+#pragma omp parallel for private (i,j,k,ii,jj,kk)
+		for(i=0;i<=ROWS-BLOCK_SIZE;i=i+BLOCK_SIZE){
+            for(j=0;j<=COLS-BLOCK_SIZE;j=j+BLOCK_SIZE){
+					for(k=0;k<=ROWS-BLOCK_SIZE;k=k+BLOCK_SIZE){						
+						for(ii=0;ii<BLOCK_SIZE;ii++){
+							for(kk=0;kk<BLOCK_SIZE;kk++){	
+								for(jj=0;jj<BLOCK_SIZE;jj++){
+											c[i+ii][j+jj]=c[i+ii][j+jj]+a[i+ii][k+kk]*b[k+kk][j+jj];
+										}
+                        }
+                    }
+                }
+            }
+        }
+        tfin=omp_get_wtime();
+        printf("\nEl computo demoro  %f segs\n",tfin-tini);
+    break;    
+        case 9:
+        tini=omp_get_wtime();
+        tid = omp_get_thread_num();
+#pragma omp parallel for private (i,j,k,ii,jj,kk)
+			for(j=0;j<=COLS-BLOCK_SIZE;j=j+BLOCK_SIZE){
+				for(k=0;k<=ROWS-BLOCK_SIZE;k=k+BLOCK_SIZE){			
+					for(i=0;i<=ROWS-BLOCK_SIZE;i=i+BLOCK_SIZE){
+            			for(ii=0;ii<BLOCK_SIZE;ii++){
+							for(kk=0;kk<BLOCK_SIZE;kk++){	
+								for(jj=0;jj<BLOCK_SIZE;jj++){
+											c[i+ii][j+jj]=c[i+ii][j+jj]+a[i+ii][k+kk]*b[k+kk][j+jj];
+										}
+                        }
+                    }
+                }
+            }
+        }
+        tfin=omp_get_wtime();
+        printf("\nEl computo demoro  %f segs\n",tfin-tini);
+    break;    
+    
+/* Se prueba el algoritmo 6, que resulto ser el mas rapido, cambiando 
+ * el ciclo for a paralelizar
+ */    
+        case 10:
+        tini=omp_get_wtime();
+        tid = omp_get_thread_num();
+        for(i=0;i<=ROWS-BLOCK_SIZE;i=i+BLOCK_SIZE){
+            for(k=0;k<=ROWS-BLOCK_SIZE;k=k+BLOCK_SIZE){
+#pragma omp parallel for private (j,ii,jj,kk)
+                for(j=0;j<=COLS-BLOCK_SIZE;j=j+BLOCK_SIZE){
+                    for(ii=0;ii<BLOCK_SIZE;ii++){
+                    	for(kk=0;kk<BLOCK_SIZE;kk++){
+                        	for(jj=0;jj<BLOCK_SIZE;jj++){
+                                c[i+ii][j+jj]=c[i+ii][j+jj]+a[i+ii][k+kk]*b[k+kk][j+jj];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        tfin=omp_get_wtime();
+        printf("\nEl computo demoro  %f segs\n",tfin-tini);
+    break;  
+      
     break;
     }
     
